@@ -93,16 +93,66 @@ app/            pages + actions.ts (server actions)
 components/     badges, charts, forms (client components)
 lib/            prisma, scoring, engine, classifiers, constants, date
 jobs/           dailyRun.ts (the daily job)
-scrapers/       mock.ts (placeholder interface no real scraping in V1)
-scripts/        importCsv.ts, backupDb.ts
+scrapers/       spotify.ts (real Spotify source) + mock.ts (placeholder for future sources)
+scripts/        importCsv.ts, backupDb.ts, testSpotify.ts
 prisma/         schema.prisma, seed.ts, dev.db
 ```
 
+See `CHANGELOG.md` for a plain-language history of what changed and when.
+
 ## What to build next
 
-1. Real scrapers/APIs behind the `scrapers/` interface (Spotify API first cleanest).
-2. Email/notification delivery for alerts (currently in-app only).
-3. Calendar view of past-day Priority Charts (data already stored in `DailyScore`).
-4. AI: artist-history summary, growth-driver detection, recommended action.
-5. Auth + move SQLite → Postgres/Supabase for cloud + scheduled jobs.
-6. CSV columns: `artist_name,spotify_url,tiktok_url,instagram_url,youtube_url,genre,location,status,notes,source`.
+Ordered roughly easiest-first. Each item is a self-contained chunk you can hand to
+a Codex agent one at a time.
+
+1. **Monthly listeners + stream tracking (Spotify).** The official Spotify
+   connection can't see these numbers, so they're typed in by hand today. A
+   future dedicated data tool could collect them and feed them in.
+2. **Separate TikTok/Instagram data tool.** Build TikTok and Instagram data
+   collection as its **own** project (this was a deliberate decision). It should
+   save data in the same shape the app already understands (the `scrapers/`
+   interface), so plugging it in later requires no changes to this app.
+3. **Email / phone notifications for alerts.** Right now alerts only appear inside
+   the app. Next step: send a daily email so you don't have to open the tool.
+4. **Calendar view.** Look back at the Priority Chart for any past day. The data
+   is already saved daily (in the `DailyScore` table), so this is mostly a new
+   page, not new plumbing.
+5. **AI helpers.** Auto-write an artist's backstory, explain *what* is driving
+   their growth (a specific post? a sound?), and suggest a next action.
+6. **Move to the cloud + logins.** Switch the database from the local file
+   (SQLite) to a hosted one (Postgres/Supabase) and add user accounts so a team
+   can use it together and jobs can run automatically.
+
+## TODO checklist
+
+Small, concrete tasks. Check them off as you (or your Codex agent) complete them.
+Format: `[ ]` = not done, `[x]` = done.
+
+### First-week operating tasks (do these, no coding needed)
+- [ ] Add your real Spotify keys to `.env` (see the **Spotify** section above).
+- [ ] Run `npm run test:spotify` and confirm you see an artist's real numbers.
+- [ ] Add 5–10 real artist leads via the **Add Artist** page.
+- [ ] Each day: enter TikTok/Instagram numbers, then click **Recalculate all**.
+- [ ] Each day: run `npm run backup` to save a copy of your data.
+- [ ] After a week, look at whether the scores match your gut. Note what feels off.
+
+### Small code improvements (good starter tasks for a Codex agent)
+- [ ] Add a **"last refreshed from Spotify" timestamp** on the artist profile so
+      you know how fresh the numbers are.
+- [ ] Add a **CSV export** button (opposite of the existing CSV import).
+- [ ] Let the user **archive** an artist from the database table, not just the
+      profile page.
+- [ ] Show the **artist's popularity (0–100)** from Spotify on the profile (we
+      already fetch it; it's just not displayed yet).
+- [ ] Add a simple **"why is this artist not on the Priority Chart?"** note that
+      explains they're below the score-60 cutoff.
+
+### Bigger tasks (plan before starting)
+- [ ] Tune the scoring numbers in `lib/scoring.ts` after a week of real data.
+- [ ] Build the separate TikTok/Instagram data tool (item 2 above).
+- [ ] Add daily email notifications (item 3 above).
+- [ ] Build the calendar view (item 4 above).
+
+### Reference: CSV import columns
+When importing leads from a spreadsheet, use these column headers:
+`artist_name, spotify_url, tiktok_url, instagram_url, youtube_url, genre, location, status, notes, source`
