@@ -1,0 +1,180 @@
+// A&R Research Tool V1 — Prisma schema (SQLite)
+// Swap datasource to postgres later without touching models.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Artist {
+  id                String         @id @default(cuid())
+  name              String
+  location          String?
+  genre             String?
+  status            String         @default("NEW_LEAD") // ArtistStatus
+  unsignedStatus    String         @default("UNKNOWN")  // UnsignedStatus
+  priorityScore     Int            @default(0)
+  artistConfidence  Int            @default(0)
+  summary           String?
+  recommendedAction String?
+  profileImageUrl   String?
+  // unsigned evidence (manual for V1)
+  labelEvidence     String?
+  pcLine            String?
+  youtubeProvidedBy String?
+  source            String?        // where lead came from: MANUAL / CSV / SPOTIFY / TIKTOK / IG
+  lastMetricAt      DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  links     ArtistLink[]
+  contacts  Contact[]
+  notes     Note[]
+  signals   Signal[]
+  metrics   MetricSnapshot[]
+  tracks    Track[]
+  scores    DailyScore[]
+  alerts    Alert[]
+}
+
+model ArtistLink {
+  id        String   @id @default(cuid())
+  artistId  String
+  platform  String   // Platform
+  url       String
+  handle    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  artistId   String
+  name       String?
+  role       String?
+  company    String?
+  email      String?
+  phone      String?
+  socialLink String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  artistId  String
+  text      String
+  source    String?
+  createdAt DateTime @default(now())
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+}
+
+model Signal {
+  id          String   @id @default(cuid())
+  artistId    String
+  type        String   // SignalType
+  description String
+  sourceUrl   String?
+  observedAt  DateTime @default(now())
+  strength    Int      @default(0)
+  createdAt   DateTime @default(now())
+  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+}
+
+// One row per artist, per platform, per day. This drives day-over-day growth.
+model MetricSnapshot {
+  id                 String   @id @default(cuid())
+  artistId           String
+  platform           String   // Platform
+  snapshotDate       DateTime // normalized to 00:00 UTC of the day
+
+  followers          Int?
+  monthlyListeners   Int?
+  totalLikes         Int?
+  totalViews         Int?
+  avgRecentPostViews Int?
+  avgRecentPostLikes Int?
+  ugcCreates         Int?
+  catalogStreams     Int?
+
+  createdAt          DateTime @default(now())
+  artist             Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, platform, snapshotDate])
+  @@index([artistId, snapshotDate])
+}
+
+model Track {
+  id          String          @id @default(cuid())
+  artistId    String
+  name        String
+  spotifyUrl  String?
+  isrc        String?
+  releaseDate DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  artist      Artist          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  snapshots   TrackSnapshot[]
+
+  @@index([artistId])
+}
+
+model TrackSnapshot {
+  id           String   @id @default(cuid())
+  trackId      String
+  snapshotDate DateTime
+  streams      Int?
+  playlistName String?
+  playlistUrl  String?
+  createdAt    DateTime @default(now())
+  track        Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, snapshotDate])
+  @@index([trackId, snapshotDate])
+}
+
+model DailyScore {
+  id             String   @id @default(cuid())
+  artistId       String
+  scoreDate      DateTime
+  spotifyScore   Int      @default(0)
+  tiktokScore    Int      @default(0)
+  instagramScore Int      @default(0)
+  signalScore    Int      @default(0)
+  totalScore     Int      @default(0)
+  explanation    String?
+  createdAt      DateTime @default(now())
+  artist         Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, scoreDate])
+  @@index([artistId, scoreDate])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  artistId  String?
+  trackId   String?
+  type      String   // AlertType
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  artist    Artist?  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+}
