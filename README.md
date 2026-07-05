@@ -27,6 +27,30 @@ npm run dev     # http://localhost:3000
 > ```
 > This machine needs it; `npm run build`/`dev` may also need it set.
 
+## Spotify (real data)
+
+The app pulls **real** Spotify data via the official Web API: followers, popularity,
+genres, and top tracks. Monthly listeners and stream counts are **not** available
+from the API, so those remain manual entry.
+
+1. Create a free app at https://developer.spotify.com/dashboard and copy the
+   **Client ID** and **Client Secret**.
+2. Put them in `.env`:
+   ```
+   SPOTIFY_CLIENT_ID="..."
+   SPOTIFY_CLIENT_SECRET="..."
+   ```
+3. Verify: `npm run test:spotify` (add `-- <artist url>` to test a specific artist).
+4. In the app, an artist with a Spotify link shows a **Refresh from Spotify** button.
+   The daily job also refreshes every Spotify-linked artist automatically.
+
+> **Corporate network:** the API calls go out over HTTPS. If they fail with a
+> self-signed certificate error, run with the system CA store, e.g.
+> `$env:NODE_OPTIONS="--use-system-ca"; npm run daily` (PowerShell).
+
+TikTok/Instagram scraping is intentionally **not** built here — it will live in a
+separate dedicated tool that plugs into the same `scrapers/` interface.
+
 ## Daily workflow (run once a day for the week)
 
 1. **Add leads** `/artists/new` (or `npm run import:csv -- leads.csv`).

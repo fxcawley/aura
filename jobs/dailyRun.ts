@@ -7,8 +7,35 @@ import { PrismaClient } from "@prisma/client";
 import { startOfUtcDay, addDays } from "../lib/date";
 import { recalcAll } from "../lib/engine";
 import { PRIORITY_CHART_MIN } from "../lib/constants";
+import { isSpotifyConfigured } from "../lib/spotify";
+import { refreshArtistFromSpotify } from "../lib/refreshSpotify";
 
 const prisma = new PrismaClient();
+
+// Pull real Spotify data for every artist that has a Spotify link.
+async function refreshSpotifyAll(): Promise<{ updated: number; failed: number }> {
+  if (!isSpotifyConfigured()) {
+    console.log("Spotify not configured — skipping API refresh (manual metrics only).");
+    return { updated: 0, failed: 0 };
+  }
+  const linked = await prisma.artistLink.findMany({
+    where: { platform: "SPOTIFY", artist: { status: { not: "ARCHIVED" } } },
+    select: { artistId: true },
+    distinct: ["artistId"],
+  });
+  let updated = 0;
+  let failed = 0;
+  for (const { artistId } of linked) {
+    try {
+      const r = await refreshArtistFromSpotify(artistId);
+      if (r.ok) updated++;
+      else failed++;
+    } catch {
+      failed++;
+    }
+  }
+  return { updated, failed };
+}
 
 async function markStale(day: Date) {
   const artists = await prisma.artist.findMany({
@@ -41,8 +68,20 @@ async function markStale(day: Date) {
 }
 
 async function main() {
+  // Load .env into process.env for this standalone script (Spotify creds etc.).
+  try {
+    (process as NodeJS.Process & { loadEnvFile?: (p?: string) => void }).loadEnvFile?.();
+  } catch {
+    // .env is optional
+  }
+
   const day = startOfUtcDay();
   console.log(`\n=== Daily run for ${day.toISOString().slice(0, 10)} ===`);
+
+  const spotify = await refreshSpotifyAll();
+  if (spotify.updated || spotify.failed) {
+    console.log(`Spotify refresh:     ${spotify.updated} updated, ${spotify.failed} failed`);
+  }
 
   const results = await recalcAll(day);
   const alertsCount = results.reduce((n, r) => n + r.alertsCreated.length, 0);

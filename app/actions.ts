@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { startOfUtcDay } from "@/lib/date";
 import { recalcArtist, recalcAll } from "@/lib/engine";
+import { refreshArtistFromSpotify } from "@/lib/refreshSpotify";
+import { isSpotifyConfigured } from "@/lib/spotify";
 
 // ---------- Artists ----------
 
@@ -49,6 +51,11 @@ export async function createArtist(formData: FormData) {
     await prisma.signal.create({
       data: { artistId: artist.id, type: "SOCIAL", description: signal },
     });
+
+  // If a Spotify URL was provided and the API is configured, pull real data now.
+  if (get("spotifyUrl") && isSpotifyConfigured()) {
+    await refreshArtistFromSpotify(artist.id).catch(() => {});
+  }
 
   await recalcArtist(artist.id).catch(() => {});
   revalidatePath("/");
@@ -163,4 +170,21 @@ export async function recalcEveryone() {
 export async function markAlertRead(alertId: string) {
   await prisma.alert.update({ where: { id: alertId }, data: { isRead: true } });
   revalidatePath("/");
+}
+
+// ---------- Spotify ----------
+
+export async function refreshSpotify(artistId: string): Promise<{ ok: boolean; message: string }> {
+  if (!isSpotifyConfigured()) {
+    return { ok: false, message: "Spotify not configured — add SPOTIFY_CLIENT_ID/SECRET to .env." };
+  }
+  try {
+    const r = await refreshArtistFromSpotify(artistId);
+    revalidatePath(`/artists/${artistId}`);
+    revalidatePath("/");
+    if (!r.ok) return { ok: false, message: r.reason ?? "Refresh failed." };
+    return { ok: true, message: `Updated: ${r.followers?.toLocaleString()} followers, ${r.tracks} top tracks.` };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Spotify refresh error." };
+  }
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/date";
 import { ScoreBadge } from "@/components/badges";
 import { ArtistControls } from "@/components/ArtistControls";
+import { SpotifyRefreshButton } from "@/components/SpotifyRefreshButton";
 import { MetricChart, ChartPoint } from "@/components/MetricChart";
 import {
   MetricForm,
@@ -70,9 +71,18 @@ export default async function ArtistProfile({ params }: { params: Promise<{ id: 
       {/* header */}
       <div className="card p-6 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-edge flex items-center justify-center text-2xl font-bold">
-            {artist.name.charAt(0)}
-          </div>
+          {artist.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={artist.profileImageUrl}
+              alt={artist.name}
+              className="h-16 w-16 rounded-full object-cover bg-edge"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-full bg-edge flex items-center justify-center text-2xl font-bold">
+              {artist.name.charAt(0)}
+            </div>
+          )}
           <div>
             <h1 className="text-2xl font-semibold">{artist.name}</h1>
             <p className="text-sm text-zinc-400">
@@ -88,11 +98,14 @@ export default async function ArtistProfile({ params }: { params: Promise<{ id: 
         </div>
       </div>
 
-      <ArtistControls
-        artistId={artist.id}
-        status={artist.status}
-        unsignedStatus={artist.unsignedStatus}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <ArtistControls
+          artistId={artist.id}
+          status={artist.status}
+          unsignedStatus={artist.unsignedStatus}
+        />
+        <SpotifyRefreshButton artistId={artist.id} />
+      </div>
 
       {/* recommended action */}
       <div className="card p-4 border-indigo-500/30">

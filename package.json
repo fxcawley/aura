@@ -14,6 +14,7 @@
     "daily": "tsx jobs/dailyRun.ts",
     "backup": "tsx scripts/backupDb.ts",
     "import:csv": "tsx scripts/importCsv.ts",
+    "test:spotify": "tsx scripts/testSpotify.ts",
     "setup": "prisma generate && prisma db push && tsx prisma/seed.ts"
   },
   "dependencies": {
