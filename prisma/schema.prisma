@@ -1,4 +1,4 @@
-// A&R Research Tool V1 — Prisma schema (SQLite)
+// A&R Research Tool V1 Prisma schema (SQLite)
 // Swap datasource to postgres later without touching models.
 
 generator client {

@@ -31,7 +31,7 @@ async function markStale(day: Date) {
         data: {
           artistId: a.id,
           type: "STALE_ARTIST",
-          title: `Stale — ${a.name}`,
+          title: `Stale ${a.name}`,
           message: `Below ${PRIORITY_CHART_MIN} for 30 consecutive days. Consider archiving.`,
         },
       });

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Aura — A&R Research Tool",
+  title: "Aura A&R Research Tool",
   description: "Find and evaluate independent artists for A&R.",
 };
 

@@ -1,4 +1,4 @@
-// Placeholder scraper interface. V1 does NOT scrape — this defines the shape
+// Placeholder scraper interface. V1 does NOT scrape this defines the shape
 // that real Spotify/TikTok/Instagram scrapers should return so the rest of the
 // app (engine, metrics) never needs to change when we wire real sources in.
 

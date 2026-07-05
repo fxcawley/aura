@@ -116,7 +116,7 @@ export async function recalcArtist(artistId: string, day = startOfUtcDay()): Pro
         artistId,
         trackId: ta.trackId,
         type: "DAILY_PERFORMING_TRACK",
-        title: `Daily Performing Track — ${artist.name}`,
+        title: `Daily Performing Track ${artist.name}`,
         message: `${ta.streams.toLocaleString()} streams/24h, +${ta.pct.toFixed(
           1
         )}%, +${ta.abs.toLocaleString()} abs.`,
@@ -130,7 +130,7 @@ export async function recalcArtist(artistId: string, day = startOfUtcDay()): Pro
       data: {
         artistId,
         type: "SCORE_SPIKE",
-        title: `Score Spike — ${artist.name}`,
+        title: `Score Spike ${artist.name}`,
         message: `Score ${prevScore} -> ${result.totalScore} (+${result.totalScore - prevScore}).`,
       },
     });
@@ -143,7 +143,7 @@ export async function recalcArtist(artistId: string, day = startOfUtcDay()): Pro
       data: {
         artistId,
         type: "FIRST_TIME_RISING",
-        title: `First-Time Rising — ${artist.name}`,
+        title: `First-Time Rising ${artist.name}`,
         message: `Crossed priority threshold (${PRIORITY_CHART_MIN}) with score ${result.totalScore}.`,
       },
     });

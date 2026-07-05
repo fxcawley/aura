@@ -111,7 +111,7 @@ export function scoreTiktok(
     s += 20;
     reasons.push(`likes ${likes.toLocaleString()} >= 5k (+20)`);
   }
-  // "50% above recent 5-post average" — we approximate via day-over-day likes
+  // "50% above recent 5-post average" we approximate via day-over-day likes
   if (likesPct >= 50) {
     s += 20;
     reasons.push(`likes +${likesPct.toFixed(1)}% vs prior (+20)`);

@@ -125,7 +125,7 @@ export default async function ArtistProfile({ params }: { params: Promise<{ id: 
                 </pre>
               </div>
             ) : (
-              <p className="text-sm text-zinc-500">No score yet — enter metrics below and recalculate.</p>
+              <p className="text-sm text-zinc-500">No score yet enter metrics below and recalculate.</p>
             )}
           </Section>
 

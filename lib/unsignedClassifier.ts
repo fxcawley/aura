@@ -1,4 +1,4 @@
-// Heuristic "is this artist unsigned?" — manual-assist for V1.
+// Heuristic "is this artist unsigned?" manual-assist for V1.
 // You paste the P/C line and/or YouTube "Provided to YouTube by" text.
 
 const MAJOR_LABEL_HINTS = [

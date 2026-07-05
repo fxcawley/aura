@@ -118,7 +118,7 @@ async function main() {
             { platform: "INSTAGRAM", url: `https://instagram.com/${s.name.replace(/\s/g, "").toLowerCase()}` },
           ],
         },
-        notes: { create: [{ text: "Seeded lead — replace with real research.", source: "SEED" }] },
+        notes: { create: [{ text: "Seeded lead replace with real research.", source: "SEED" }] },
         signals: {
           create: s.signals.map(([type, description]) => ({ type, description })),
         },
@@ -126,7 +126,7 @@ async function main() {
     });
 
     const track = await prisma.track.create({
-      data: { artistId: artist.id, name: `${s.name} — Single`, spotifyUrl: "https://open.spotify.com/track/demo" },
+      data: { artistId: artist.id, name: `${s.name} Single`, spotifyUrl: "https://open.spotify.com/track/demo" },
     });
 
     const days = series(s.base, s.rate);
